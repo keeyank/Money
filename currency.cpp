@@ -98,24 +98,31 @@ namespace Currency_lib {
 	}
 
 	void operator+=(Money& m1, const Money& m2) {
-		if (m1.currency != m2.currency)
-			throw runtime_error("operator+=: Mismatched currency.");
-		m1 = Money{m1.total_cents + m2.total_cents, m1.currency};
+		m1 = m1 + m2;
 	}
 
+	Money Money::convert(Currency cr) const {
+		static const vector<double> conversions = {1,.75,80.89,.67};
+
+		long int convert_cents = total_cents;
+		// Convert this object's currency to cad
+		convert_cents /= conversions[(int)currency]; 
+		// Convert the cad currency to cr
+		convert_cents *= conversions[(int)cr];
+		return Money{convert_cents, cr};
+	}
 
 }
 
 // TEST
 using namespace Currency_lib;
 int main() {
-	Money prev{(long int)0, Currency::usd}; // long int to get past ambiguity of constructors
+	Money total{(long int)0, Currency::eur}; // long int to get past ambiguity of constructors
 	Money next;
 	cout << ">";
 	while (cin >> next) {
-		next += prev;
-		cout << next << endl;
-		prev = next;
+		total += next.convert(Currency::eur);
+		cout << total << endl;
 		cout << ">";
 	}
 	return 0;
