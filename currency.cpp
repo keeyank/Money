@@ -7,64 +7,52 @@ using namespace std;
 
 namespace Currency {
 	Money::Money() { }
+
 	Money::Money(long int c):
 				total_cents{c}
 	{
 		if (c < 0)
-			throw runtime_error("Money::Money: Invalid input (c < 0).");
-	}
-	Money::Money(long int d, int c)
-	{
-		if (d < 0 || c < 0)
 			throw runtime_error("Money::Money: Invalid input (non-negative).");
-		total_cents = to_cents(d, c);
+	}
+
+	Money::Money(double d) {
+		if (d < 0)
+			throw runtime_error("Money::Money: Invalid input (non-negative).");
+		total_cents = to_cents(d);
+	}
+
+	long int Money::to_cents(double d) {
+		long int total = (int)(d*1000);
+		int r = total%10;
+		if (r >= 5) {
+			total += 10;
+		}
+		total /= 10;
+		return total;
 	}
 
 	ostream& operator<<(ostream& os, const Money& m) {
-		int cents = m.get_cents() % 100;
-		long int dollars = m.get_cents() / 100;
+		int cents = m.total_cents % 100;
+		long int dollars = m.total_cents / 100;
 		return os << '$' << dollars << '.' << cents;
 	}
 
 	istream& operator>>(istream& is, Money& m) {
-		char ch1, ch2;
-		long int d;
-		int c;
+		char ch1;
+		double d;
 
-		is >> ch1 >> d >> ch2 >> c;
+		is >> ch1 >> d;
 		if (!is) {return is;}
-		if (ch1 != '$' || ch2 != '.') {
+		if (ch1 != '$') {
 			is.clear(ios_base::failbit); // set fail bit
 			return is;
 		}
 
-		m = Money(d, c);
+		m = Money(d);
 		return is;
 	}
 
-	long int to_cents(long int d, int c) {
-		// Assertion: d, c are non-negative
 
-		long int total = d*100;
-
-		while (c >= 1000) {
-			c /= 10; // integer div (throw out remainder)
-		}
-
-		// Round c (4/5 rule)
-		if (c >= 100) {
-			int r = c % 10;
-			if (r >= 5) {
-				c += 10; // round UP 
-			}
-			// r <= 4, round down (div throws out remainder anyways)
-			c /= 10;
-		}
-
-		total += c;
-		return total;
-
-	}
 }
 
 // TEST
